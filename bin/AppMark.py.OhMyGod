@@ -1,0 +1,101 @@
+/bin/bash: indent: 未找到命令
+    (home_rv,home_rv_wodd,home_last_3_goals,home_last_3_losts)=BSc.getTeamMatDis(home_url,wodd,lodd,1)
+    (away_rv,away_rv_wodd,away_last_3_goals,away_last_3_losts)=BSc.getTeamMatDis(away_url,lodd,wodd,0)
+    print '====================== ⚽ ======================'
+    print m_match.hometeam + ' 最近三场进球: '+str(home_last_3_goals)+' 最近三场失球:'+str(home_last_3_losts)
+    print m_match.awayteam + ' 最近三场进球: '+str(away_last_3_goals)+' 最近三场失球:'+str(away_last_3_losts)
+    print '==============================================='
+    SelShow(home_rv,away_rv)
+    show(home_rv,home_rv_wodd)
+    show(away_rv,away_rv_wodd)
+    print  '===============  澳门心水推荐  ================='
+    print WebSuggest
+    print '          '
+    print '          '
+
+def app(match_id):
+    #match_id  = sys.argv[1]
+    m_match = spider.get_match(match_id)
+    if isStart(m_match.match_time):
+       print '已经开赛'
+       return 0
+    m_match.display()
+    match_url = 'http://odds.500.com/fenxi/shuju-'+ str(match_id) +'.shtml'
+    content   = spider.url_get(match_url,"gb2312")
+    WebSuggest = netdata.get_Suggest(content)
+    (home_url,away_url) = netdata.get_Team_url(content)
+    odd_url   = 'http://odds.500.com/fenxi/ouzhi-'+ str(match_id) +'.shtml'
+    content   = spider.url_get(odd_url,"gb2312")
+    (wodd,lodd) = netdata.get_now_Odds(content)
+    (home_rv,home_rv_wodd,home_last_3_goals,home_last_3_losts,home_this_goals,home_this_loses)=BSc.getTeamMatDis(home_url,wodd,lodd,1)
+    (away_rv,away_rv_wodd,away_last_3_goals,away_last_3_losts,away_this_goals,away_this_loses)=BSc.getTeamMatDis(away_url,lodd,wodd,0)
+    if home_rv.num_matches<1 or away_rv.num_matches<1:
+       print '          '
+       print '          '
+       return 0
+    print '==============================================='
+    SelShow(home_rv,away_rv)
+    show(home_rv,home_rv_wodd,home_this_goals,home_this_loses)
+    show(away_rv,away_rv_wodd,away_this_goals,away_this_loses)
+    print '====================== ⚽ ======================'
+    print m_match.host_team + ' 最近三场进球: '+str(home_last_3_goals)+' 最近三场失球:'+str(home_last_3_losts)
+    print m_match.guest_team + ' 最近三场进球: '+str(away_last_3_goals)+' 最近三场失球:'+str(away_last_3_losts)
+    print  '=============== 🐷 澳门心水推荐 🐷 ================='
+    print WebSuggest
+    showMarket(match_id)       
+    #showOddsChangePre(match_id)
+    #print  '=============== 🐷 群内古法 🐷 ================='
+    #ot.searchSimilar(match_id)
+    print  '=============== 🏯澳门亚盘🏯  ================='
+    fw.AppUseAomenOdds(match_id)
+    print  '=============== 🎬 韦德大小球🎬  ================='
+    fw.AppUseWeddOdds(match_id)    
+    os.system('./AutobetTool.sh ' + str(match_id) )
+    print '          '
+    print '          '
+
+def isStart(match_time):
+    #time = re.match(r'(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})', match_time)
+    #print match_time
+    time = re.match(r'比赛时间(.*)-(.*)-(.*) (.*):(.*)', match_time)
+    #print time.groups()
+    #(m_year,m_month,m_day,m_hour,m_minute) = (time.groups()[0],time.groups()[1],time.groups()[2],time.groups()[3],time.groups()[4])
+    now = datetime.datetime.now()
+    now_time = re.match(r'(.*)-(.*)-(.*) (.*):(.*):(.*)',str(now))
+    #print now_time.groups()
+    #(now_year,now_month,now_day,now_hour,now_minute) = (now_time.groups()[0],now_time.groups()[1],now_time.groups()[2],now_time.groups()[3],now_time.groups()[4])
+    # if int(m_year) >= int(now_year):
+    #    if int(m_month) >= int(now_month):
+    #       if int(m_day) >= int(now_day):
+    #          if int(m_hour) >= int(now_hour):
+    #             if int(m_minute) >= int(now_minute):
+    #                return False
+    # return True
+    now_t    = list(now_time.groups())
+    #now_t[2] = '31'
+    now_t[3] = '11'
+    #print tuple(now_t)
+    return compareTime(time.groups(),tuple(now_t),0) 
+
+def compareTime(m_time,n_time,i):
+    if m_time > n_time:
+       return False
+    if m_time < n_time:
+       return True
+    if i == len(m_time)-1:
+       return True
+    else:
+       return compareTime(m_time,n_time,i+1)         
+
+def test_isStart(match_id):
+    #content = spider.url_get('http://odds.500.com/fenxi/shuju-642942.shtml',"gb2312")
+    m_match = spider.get_match(match_id)
+    print isStart(m_match.match_time)
+
+if __name__ == '__main__':
+    app(sys.argv[1])
+    #app("701699")
+    #test(sys.argv[1])
+    #test(698120)
+    #test_isStart(sys.argv[1])
+    #showMarket(663190)
