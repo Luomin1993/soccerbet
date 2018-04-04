@@ -197,7 +197,7 @@ def PG_to_O(PG):
     for i in range(2,len(PG)):
         O.append( FOR(PG[i-2],PG[i-1]) )
     return O                     
-
+'''
 def FOR_29(g):
     if g>0:
        return 0
@@ -210,7 +210,24 @@ def PG_to_O_29(PG):
     for i in range(1,len(PG)):
         O.append(FOR_29(PG[i-1]))
     return O 
+'''
 
+def FOR_29(g,odd):
+    if g>0:
+       return 0
+    if g==0 and odd<1:
+       return 0
+    if g<0:
+       return 1
+    if g==0 and odd>=1:
+       return 1
+
+
+def PG_to_O_29(PG,ODD):
+    O = []
+    for i in range(1,len(PG)):
+        O.append(FOR_29(PG[i-1],ODD[i-1]))
+    return O 
 
 def ODD_to_O(ODD):
     O = []

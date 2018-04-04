@@ -6,29 +6,19 @@ import pickle as pk
 import random
 import spiderForWedd as sw
 import sys
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+from pylab import *
 
-def show(Infos):
-    num_25  = 0 
-    num_15  = 0
-    num_10  = 0
-    num_t   = float(len(Infos))
-    history = []
+def plot(Infos):
+    goals = []
     for info in Infos:
-        if info[0][4]+info[0][5]>2.5:
-           num_25+=1
-           history.append('>2.5 ')
-           continue
-        if info[0][4]+info[0][5]>1.5:
-           num_15+=1
-           history.append('>1.5 ')
-        if info[0][4]+info[0][5]<2:
-           num_10+=1
-           history.append('0-1 ')
-    print  ' 场数:      '+str(num_t)       
-    print  ' 大于2.5球:  '+str(num_25/num_t)
-    print  ' 大于1.5球:  '+str(num_15/num_t)
-    print  ' 小于1.5球:  '+str(num_10/num_t)
-    print  history
+        goals.append(info[0][4]+info[0][5])
+    times = [n for n in range(0,len(goals))]
+    plt.ylim(-1,10)
+    plt.plot(times, goals, marker='o', mec='r', mfc='w',label=u'BS Ball')
+    plt.savefig("/var/www/html/BSBall.png")
 
 def giveJudge(Infos):
     num_25 = 0 
@@ -62,11 +52,12 @@ def AppUseWedd(match_id):
     if pre_info==0:
        return 0
     pre_info = (np.float64(np.array((pre_info[0]+pre_info[2]))),pre_info[1])
-    Datas    = np.concatenate((np.load('Data_BS/WeddBS-1.npy'),np.load('Data_BS/WeddBS-2.npy'),np.load('Data_BS/WeddBS-3.npy'),np.load('Data_BS/WeddBS-4.npy'),np.load('Data_BS/WeddBS-5.npy'),np.load('Data_BS/WeddBS-6.npy'),np.load('Data_BS/WeddBS-7.npy'),np.load('Data_BS/WeddBS-8.npy'),np.load('Data_BS/WeddBS-9.npy'),np.load('Data_BS/WeddBS-10.npy'),np.load('Data_BS/WeddBS-11.npy'),np.load('Data_BS/WeddBS-12.npy'),np.load('Data_BS/WeddBS-1_18.npy'),np.load('Data_BS/WeddBS-2_18.npy') ))
+    Datas    = np.concatenate((np.load('Data_BS/WeddBS-1.npy'),np.load('Data_BS/WeddBS-2.npy'),np.load('Data_BS/WeddBS-3.npy'),np.load('Data_BS/WeddBS-4.npy'),np.load('Data_BS/WeddBS-5.npy'),np.load('Data_BS/WeddBS-6.npy'),np.load('Data_BS/WeddBS-7.npy'),np.load('Data_BS/WeddBS-8.npy'),np.load('Data_BS/WeddBS-9.npy'),np.load('Data_BS/WeddBS-10.npy'),np.load('Data_BS/WeddBS-11.npy'),np.load('Data_BS/WeddBS-12.npy'),np.load('Data_BS/WeddBS-1_18.npy') ))
     Infos    = giveSimilarInfos(pre_info,Datas)
     if len(Infos)==0:
        return 0
-    show(Infos)
+    #show(Infos)
+    plot(Infos)
 
 def AppUseWedd_s(match_id):
     pre_info = sw.getAppointBSOddsAndRes_notstart(match_id,'伟德')
@@ -124,3 +115,4 @@ def stat():
 if __name__ == '__main__':
     #stat()
     AppUseWedd(sys.argv[1])
+

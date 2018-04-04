@@ -87,12 +87,19 @@ def getAppointASOddsAndRes(match_id,company):
     OddsHomeArr  = reTurpleToList(odds_home_r.findall(content),3)
     OddsAwayArr  = reTurpleToList(odds_away_r.findall(content),3)
     PansArr      = reTurpleToList(pan_r.findall(content),2)
+    # if len(OddsHomeArr)==0 or len(OddsAwayArr)==0:
+    #    return 0
     #Find----------------   
     indexOfCom   = CompaniesArr.index(company)
     res          = res_r.findall(content)
     #(['0.77', '1.05', '2.40', '0.30'], ['2.5', '3.5'], ['2', '1'])
     #['1.000', '0.890', '0.700', '1.250'], ['\xe5\xb9\xb3\xe6\x89\x8b/\xe5\x8d\x8a\xe7\x90\x83', '\xe5\x8f\x97\xe5\xb9\xb3\xe6\x89\x8b/\xe5\x8d\x8a\xe7\x90\x83'], ['2', '1']
-    return ([OddsHomeArr[2*indexOfCom].replace('↑','').replace('↓',''),OddsAwayArr[2*indexOfCom].replace('↑','').replace('↓',''),OddsHomeArr[2*indexOfCom+1],OddsAwayArr[2*indexOfCom+1]],[PansArr[2*indexOfCom],PansArr[2*indexOfCom+1]],[res[0][0],res[0][1]])        
+    try:
+        return ([OddsHomeArr[2*indexOfCom].replace('↑','').replace('↓',''),OddsAwayArr[2*indexOfCom].replace('↑','').replace('↓',''),OddsHomeArr[2*indexOfCom+1],OddsAwayArr[2*indexOfCom+1]],[PansArr[2*indexOfCom],PansArr[2*indexOfCom+1]],[res[0][0],res[0][1]])        
+    except IndexError:
+        return 0
+    #return ([OddsHomeArr[2*indexOfCom].replace('↑','').replace('↓',''),OddsAwayArr[2*indexOfCom].replace('↑','').replace('↓',''),OddsHomeArr[2*indexOfCom+1],OddsAwayArr[2*indexOfCom+1]],[PansArr[2*indexOfCom],PansArr[2*indexOfCom+1]],[res[0][0],res[0][1]])        
+ 
 
 def getAppointASOddsAndRes_notstart(match_id,company):
     url     = 'http://odds.500.com/fenxi/yazhi-'+str(match_id)+'.shtml'
@@ -136,7 +143,7 @@ def getAppointBSOddsAndRes_test():
     return getAppointBSOddsAndRes('642942','伟德')
 
 #------------- Every time one month ---------------
-def AppSpiderWeddBSodds(month,lastday):
+def AppSpiderAomenBSodds(month,lastday):
     Lines = []
     for day in range(1,min(10,lastday)):
     	match_ids = spider.crawl_match_list_by_date(str(today.year) + "-"+str(month)+"-0" + str(day))
@@ -144,7 +151,7 @@ def AppSpiderWeddBSodds(month,lastday):
         print '当天共'+str(len(match_ids))+'场比赛,正在下载...'
         pbar = ProgressBar().start();i=1;total=len(match_ids);
         for match_id in match_ids:
-            info = getAppointBSOddsAndRes(match_id,'伟德')
+            info = getAppointASOddsAndRes(match_id,'澳门')
             if info==0:continue
             pbar.update(int(100*(float(i)/total)))
             Lines.append((np.float64(np.array((info[0]+info[2]))),info[1]))
@@ -158,7 +165,7 @@ def AppSpiderWeddBSodds(month,lastday):
         print '当天共'+str(len(match_ids))+'场比赛,正在下载...'
         pbar = ProgressBar().start();i=1;total=len(match_ids);
         for match_id in match_ids:
-            info = getAppointBSOddsAndRes(match_id,'伟德')
+            info = getAppointASOddsAndRes(match_id,'澳门')
             if info==0:continue
             pbar.update(int(100*(float(i)/total)))
             Lines.append((np.float64(np.array((info[0]+info[2]))),info[1]))
@@ -183,7 +190,7 @@ def AppSpiderAomenASodds(day1,day2):
 
 def AppMakeAomenData(day1,day2):
     Lines = AppSpiderAomenASodds(day1,day2)
-    np.save('AomenAS'+str(day1)+'-'+str(day2)+'_18',Lines)
+    np.save('AomenAS'+str(day1)+'-'+str(day2),Lines)
 
 def AppUseAomenOdds(match_id):
     thisInfo = getOneAomenOdd(match_id)
@@ -207,9 +214,9 @@ def AppSpiderWeddBSodds_test():
     for line in Lines:
     	print line
 
-def AppMakeWeddData(month,lastday):
-	Lines = AppSpiderWeddBSodds(month,lastday)
-	np.save('Data_BS/WeddBS'+'-'+str(month)+'_18',Lines)
+def AppMakeAomenData(month,lastday):
+	Lines = AppSpiderAomenBSodds(month,lastday)
+	np.save('Data_WDL/AomenWDL-'+str(month)+'_18',Lines)
 
 def AppUseWeddOdds(match_id):
     thisInfo = getOneWeddOdd(match_id)
@@ -221,18 +228,18 @@ def AppUseWeddOdds(match_id):
     	   print str(info[0][4])+':'+str(info[0][5]) +' --- '+ judgeBSRes(info[0][4],info[0][5])
 
 def judgeBSRes(goal1,goal2):
-	if goal1+goal2>2.5 and goal1+goal2>1.5:
-	   return '大2.5 大1.5'
-	if goal1+goal2<2.5 and goal1+goal2>1.5:   
-	   return '      大1.5'
-	return '小'   
+    if goal1+goal2>2.5 and goal1+goal2>1.5:
+       return '大2.5 大1.5'
+    if goal1+goal2<2.5 and goal1+goal2>1.5:   
+       return '      大1.5'
+    return '小'   
 
 if __name__ == '__main__':
     #print getAppointBSOddsAndRes_test()    
     #print getAppointASOddsAndRes_test()
     #AppSpiderWeddBSodds_test()
     #AppMakeAomenData(1,5)
-    AppMakeWeddData(2,9)
-    #AppMakeWeddData_thisMonth(12,3)
-    #AppUseWeddOdds(sys.argv[1])
-    #AppUseAomenOdds(sys.argv[1])
+    #AppMakeAomenData(6,30)
+    #AppMakeAomenData(7,31)
+    #AppMakeAomenData(8,31)
+    AppMakeAomenData(1,31)

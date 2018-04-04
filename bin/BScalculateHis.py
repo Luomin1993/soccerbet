@@ -49,14 +49,14 @@ def getTeamMatDis(team_url,wodd,lodd,ha_now):
     #del PGR_g[0];del PGR_g[1];del PGR_l[0];del PGR_l[1];
     if len(PGR_g)<20:
        return -1
-    PGO      = trans.ODD_to_O_29(Odds[0:len(Odds)]) #1*29
-    FOR      = trans.PG_to_O_29(np.array(PGR_g)-np.array(PGR_l),Odds) #1*29
+    PGO      = trans.ODD_to_O_29(Odds) #1*28
+    FOR      = trans.PG_to_O_29(np.array(PGR_g[0:-1])-np.array(PGR_l[0:-1]),Odds[0:-1]) #1*28
     del PGR_g[0];del PGR_l[0];del HA[0];
-    Mat      = trans.RFOH_to_StaticMat(PGR_g,PGR_l,PGO,HA,FOR)
+    Mat      = trans.RFOH_to_StaticMat(PGR_g[0:-1],PGR_l[0:-1],PGO[0:-1],HA[0:-1],FOR)
     #print Mat
-    for_now = trans.FOR_29(PGR_g[-1]-PGR_l[-1],Odds[-1])
+    for_now = trans.FOR_29(PGR_g[-2]-PGR_l[-2],Odds[-2])
     #print for_now
-    odd_now = trans.OD(lodd/wodd)
+    odd_now = trans.OD(Odds[-2])
     #ha_now  = 
     #print odd_now
     #print for_now
@@ -64,10 +64,10 @@ def getTeamMatDis(team_url,wodd,lodd,ha_now):
     #rv      = (Mat[odd_now][for_now][ha_now],wodd)
     # if rv:
     #     pass
-    last_3_goals = PGR_g[-3:]
-    last_3_losts = PGR_l[-3:]
-    (this_goals,this_loses) = get_This_Goals(PGR_g,PGR_l,PGO,FOR,HA,odd_now,for_now,ha_now)
-    return (Mat[odd_now][for_now][ha_now],wodd,last_3_goals,last_3_losts,this_goals,this_loses)
+    last_3_goals = PGR_g[-4:-1]
+    last_3_losts = PGR_l[-4:-1]
+    (this_goals,this_loses) = get_This_Goals(PGR_g[0:-1],PGR_l[0:-1],PGO[0:-1],FOR,HA[0:-1],odd_now,for_now,ha_now)
+    return (Mat[odd_now][for_now][ha_now],wodd,last_3_goals,last_3_losts,this_goals,this_loses,PGR_g[-1])
 
 def get_This_Goals(goals,loses,odds,For,HA,odd_now,for_now,ha_now):
     this_loses=[]

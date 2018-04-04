@@ -13,7 +13,9 @@ import re
 import datetime
 import spiderForMarket as fm
 import AppOddschangePre
-
+import BScalculateHis as BSc
+import spiderForWedd as fw
+import os
 
 g_Treshold = 0.25
 g_Treshold_goal = 0.5
@@ -50,11 +52,11 @@ def getTeamMatDis(team_url,wodd,lodd,ha_now):
     if len(PGR_g)<20:
        return -1
     PGO      = trans.ODD_to_O_29(Odds[0:len(Odds)]) #1*29
-    FOR      = trans.PG_to_O_29(np.array(PGR_g)-np.array(PGR_l),Odds) #1*29
+    FOR      = trans.PG_to_O_29(np.array(PGR_g)-np.array(PGR_l)) #1*29
     del PGR_g[0];del PGR_l[0];del HA[0];
     Mat      = trans.RFOH_to_StaticMat(PGR_g,PGR_l,PGO,HA,FOR)
     #print Mat
-    for_now = trans.FOR_29(PGR_g[-1]-PGR_l[-1],Odds[-1])
+    for_now = trans.FOR_29(PGR_g[len(PGR_g)-1]-PGR_l[len(PGR_l)-1])
     #print for_now
     odd_now = trans.OD(lodd/wodd)
     #ha_now  = 
@@ -64,72 +66,68 @@ def getTeamMatDis(team_url,wodd,lodd,ha_now):
     #rv      = (Mat[odd_now][for_now][ha_now],wodd)
     # if rv:
     #     pass
-    last_3_goals = PGR_g[-3:]
-    last_3_losts = PGR_l[-3:]
-    (this_goals,this_loses) = get_This_Goals(PGR_g,PGR_l,PGO,FOR,HA,odd_now,for_now,ha_now)
-    return (Mat[odd_now][for_now][ha_now],wodd,last_3_goals,last_3_losts,this_goals,this_loses)
+    # print '>>>>>>>>>>>>'
+    # print '胜赔: ' + str(wodd)
+    # print '进球期望: ' + str(rv.get_average_goal())
+    # print '失球期望: ' + str(rv.get_average_lose())
+    # print " --- "+ str(rv.get_pre_vec())  +" --- 置信度: " + str(rv.num_matches)
+    #last_3_goals = PGR_g[-3:]
+    #last_3_losts = PGR_l[-3:]
+    return (Mat[odd_now][for_now][ha_now],wodd)
 
-def get_This_Goals(goals,loses,odds,For,HA,odd_now,for_now,ha_now):
-    this_loses=[]
-    this_goals=[]
-    for i in range(len(goals)):
-        if odds[i]==odd_now and For[i]==for_now and HA[i]==ha_now:
-            this_goals.append(goals[i])
-            this_loses.append(loses[i])
-    return (this_goals,this_loses)        
-
-
-def show(rv,wodd):
-    print '>>>>>>>>>>>>'
+def show(rv,wodd,this_goals,this_loses):
+    print '++++++++++++ 🏃📆🏃 ++++++++++++++ '
     print '胜赔: ' + str(wodd)
-    print '进球期望: ' + str(rv.get_average_goal())
-    print '失球期望: ' + str(rv.get_average_lose())
+    print '进球期望: ' + str(rv.get_average_goal()) + ' ± ' +str(np.var(this_goals))
+    #print this_goals
+    #print this_loses
+    print '失球期望: ' + str(rv.get_average_lose()) + ' ± ' +str(np.var(this_loses))
     print " --- "+ str(rv.get_pre_vec())  +" --- 置信度: " + str(rv.num_matches)
 
 def show_nothing():
-    print '不推荐投注!'
+    print '🔫不推荐投注!'
 
 def show_BS(BigBall,SmaBall):
-    print '大小球指示参考：'+' @大球界:'+str(BigBall)+'   @小球界:'+str(SmaBall)
+    print '💴大小球指示参考：'+' @大球界:'+str(BigBall)+'   @小球界:'+str(SmaBall)
 
 def showMarket(match_id):
     (betfair_indexes,boss_wl,betfair_suggest) = fm.getBetfairsth(match_id)
     (asia_odds,asia_num)                      = fm.getAsialot(match_id)
     (bs_odds,bs_num)                          = fm.getBslot(match_id)
     (kelly_index,back_lot)                    = fm.getKelly(match_id)
-    print '============== 指数分析 ================'
-    print '必发指数: '+betfair_indexes[0]+' '+betfair_indexes[1]+' '+betfair_indexes[2]
-    print '庄家盈亏: '+boss_wl[0]+' '+boss_wl[1]+' '+boss_wl[2]
+    print '============== 指数分析📊 ================'
+    print '🗽必发指数: '+betfair_indexes[0]+' '+betfair_indexes[1]+' '+betfair_indexes[2]
+    print '🙅庄家盈亏: '+boss_wl[0]+' '+boss_wl[1]+' '+boss_wl[2]
     print '         '+betfair_suggest[0]
     print '         '+betfair_suggest[1]
     print '         '+betfair_suggest[2]
-    print '============== 亚盘盘口 ================'
+    print '============== 亚盘盘口💰 ================'
     print '-----初始盘口:'
-    print '澳门    : '+asia_odds[2]+'  '+asia_num[1]+'  '+asia_odds[3]
-    print 'Bet365  : '+asia_odds[6]+'  '+asia_num[3]+'  '+asia_odds[7]
-    print '皇冠    : '+asia_odds[10]+'  '+asia_num[5]+'  '+asia_odds[11]
-    print '金宝博  : '+asia_odds[14]+'  '+asia_num[7]+'  '+asia_odds[15]
-    print '香港马会: '+asia_odds[18]+'  '+asia_num[9]+'  '+asia_odds[19]
+    print '♞澳门    : '+asia_odds[2]+'  '+asia_num[1]+'  '+asia_odds[3]
+    print '♜Bet365  : '+asia_odds[6]+'  '+asia_num[3]+'  '+asia_odds[7]
+    print '♕皇冠    : '+asia_odds[10]+'  '+asia_num[5]+'  '+asia_odds[11]
+    print '♝金宝博  : '+asia_odds[14]+'  '+asia_num[7]+'  '+asia_odds[15]
+    print '♟香港马会: '+asia_odds[18]+'  '+asia_num[9]+'  '+asia_odds[19]
     print '-----即时盘口:'
-    print '澳门    : '+asia_odds[0]+'  '+asia_num[0]+'  '+asia_odds[1]
-    print 'Bet365  : '+asia_odds[4]+'  '+asia_num[2]+'  '+asia_odds[5]
-    print '皇冠    : '+asia_odds[8]+'  '+asia_num[4]+'  '+asia_odds[9]
-    print '金宝博  : '+asia_odds[12]+'  '+asia_num[6]+'  '+asia_odds[13]
-    print '香港马会: '+asia_odds[16]+'  '+asia_num[8]+'  '+asia_odds[17]
-    print '============== 大小盘口 ================'
+    print '♞澳门    : '+asia_odds[0]+'  '+asia_num[0]+'  '+asia_odds[1]
+    print '♜Bet365  : '+asia_odds[4]+'  '+asia_num[2]+'  '+asia_odds[5]
+    print '♕皇冠    : '+asia_odds[8]+'  '+asia_num[4]+'  '+asia_odds[9]
+    print '♝金宝博  : '+asia_odds[12]+'  '+asia_num[6]+'  '+asia_odds[13]
+    print '♟香港马会: '+asia_odds[16]+'  '+asia_num[8]+'  '+asia_odds[17]
+    print '============== 大小盘口🗿 ================'
     print '-----初始盘口:'
-    print '澳门    : '+bs_odds[2]+'  '+bs_num[1]+'  '+bs_odds[3]
-    print 'Bet365  : '+bs_odds[6]+'  '+bs_num[3]+'  '+bs_odds[7]
-    print '皇冠    : '+bs_odds[10]+'  '+bs_num[5]+'  '+bs_odds[11]
-    print '金宝博  : '+bs_odds[14]+'  '+bs_num[7]+'  '+bs_odds[15]
-    print '香港马会: '+bs_odds[18]+'  '+bs_num[9]+'  '+bs_odds[19]
+    print '♞澳门    : '+bs_odds[2]+'  '+bs_num[1]+'  '+bs_odds[3]
+    print '♜Bet365  : '+bs_odds[6]+'  '+bs_num[3]+'  '+bs_odds[7]
+    print '♕皇冠    : '+bs_odds[10]+'  '+bs_num[5]+'  '+bs_odds[11]
+    print '♝金宝博  : '+bs_odds[14]+'  '+bs_num[7]+'  '+bs_odds[15]
+    print '♟香港马会: '+bs_odds[18]+'  '+bs_num[9]+'  '+bs_odds[19]
     print '-----即时盘口:'
-    print '澳门    : '+bs_odds[0]+'  '+bs_num[0]+'  '+bs_odds[1]
-    print 'Bet365  : '+bs_odds[4]+'  '+bs_num[2]+'  '+bs_odds[5]
-    print '皇冠    : '+bs_odds[8]+'  '+bs_num[4]+'  '+bs_odds[9]
-    print '金宝博  : '+bs_odds[12]+'  '+bs_num[6]+'  '+bs_odds[13]
-    print '香港马会: '+bs_odds[16]+'  '+bs_num[8]+'  '+bs_odds[17]
-    print '============== 凯利指数 ================'
+    print '♞澳门    : '+bs_odds[0]+'  '+bs_num[0]+'  '+bs_odds[1]
+    print '♜Bet365  : '+bs_odds[4]+'  '+bs_num[2]+'  '+bs_odds[5]
+    print '♕皇冠    : '+bs_odds[8]+'  '+bs_num[4]+'  '+bs_odds[9]
+    print '♝金宝博  : '+bs_odds[12]+'  '+bs_num[6]+'  '+bs_odds[13]
+    print '♟香港马会: '+bs_odds[16]+'  '+bs_num[8]+'  '+bs_odds[17]
+    print '============== 凯利指数💻 ================'
     print '初始: '+'返还率: '+back_lot[0]+' '+'凯利: '+kelly_index[0]+' '+kelly_index[1]+' '+kelly_index[2]
     print '即时: '+'返还率: '+back_lot[1]+' '+'凯利: '+kelly_index[3]+' '+kelly_index[4]+' '+kelly_index[5]
 
@@ -153,7 +151,7 @@ def showOddsChangePre(match_id):
         
 
 def SelShow(home_rv,away_rv):
-    print '>>>>>>>投注建议： '
+    print '>>>>>>>投注建议👉☎： '
     if (home_rv.num_matches==0 and away_rv.num_matches<3) or (home_rv.num_matches<3 and away_rv.num_matches==0):
        show_nothing()
        return
@@ -176,12 +174,15 @@ def SelShow(home_rv,away_rv):
     # print SureGoal(home_rv.get_average_goal(),away_rv.get_average_lose())
     # print home_rv.get_average_goal()
     # print away_rv.get_average_lose()
-    if home_rv.num_matches!=0 and SureGoal(home_rv.get_average_goal(),away_rv.get_average_lose()):
+    if home_rv.num_matches>1 and away_rv.num_matches>1 and SureGoal(home_rv.get_average_goal(),away_rv.get_average_lose()):
         print '     主队波胆球数: '+ str(CalGoal((home_rv.get_average_goal()+away_rv.get_average_lose())/2)) +'球'   
-    if away_rv.num_matches!=0 and SureGoal(away_rv.get_average_goal(),home_rv.get_average_lose()):
+    if home_rv.num_matches>1 and away_rv.num_matches>1 and SureGoal(away_rv.get_average_goal(),home_rv.get_average_lose()):
         print '     客队波胆球数: '+ str(CalGoal((away_rv.get_average_goal()+home_rv.get_average_lose())/2)) +'球'      
-    BigBall = CalGoal(min(home_rv.get_average_goal(),away_rv.get_average_lose()))+CalGoal(min(away_rv.get_average_goal(),home_rv.get_average_lose()))   
-    SmaBall = CalGoal(max(home_rv.get_average_goal(),away_rv.get_average_lose()))+CalGoal(max(away_rv.get_average_goal(),home_rv.get_average_lose()))   
+    #BigBall = CalGoal(min(home_rv.get_average_goal(),away_rv.get_average_lose()))+CalGoal(min(away_rv.get_average_goal(),home_rv.get_average_lose()))   
+    #SmaBall = CalGoal(max(home_rv.get_average_goal(),away_rv.get_average_lose()))+CalGoal(max(away_rv.get_average_goal(),home_rv.get_average_lose()))   
+    #BigBall = BSc.CalGoal(home_rv.get_average_goal(),home_rv.get_average_lose(),away_rv.get_average_goal(),away_rv.get_average_lose())
+    (BigBall,SmaBall) = BSc.CalGoal(home_rv.get_average_goal(),home_rv.get_average_lose(),away_rv.get_average_goal(),away_rv.get_average_lose())
+    #(homepregoal_var,homeprelose_var,awaypregoal_var,awayprelose_var) = (np.var(home_rv.goals),np.var(home_rv.loses),np.var(away_rv.goals),np.var(away_rv.loses))
     show_BS(BigBall,SmaBall)
 
 
@@ -192,11 +193,11 @@ def GoodVec(vec):
 
 def GoodVecs(vec1,vec2):
     if (vec1[0]<=g_Treshold and vec2[2]<=g_Treshold):
-       print '>>>>>>>'
+       print '>>>>>>>📈'
        print '     主队强势可追不败;'
        return 3
     if (vec1[2]<=g_Treshold and vec2[0]<=g_Treshold):
-       print '>>>>>>>'
+       print '>>>>>>>📈'
        print '     客队强势可追不败;'
        return 0   
     return False   
@@ -206,16 +207,15 @@ def SureGoal(goal1,goal2):
        return True
     return False   
 
-def CalGoal(hg,hl,ag,al):
-    #return int(goal+0.3)
-    return (int(min(hg,al))+int(min(hl,ag)),int(max(hg,al)+0.65)+int(max(hl,ag)+0.65))
+def CalGoal(goal):
+    return int(goal+0.3)
 
 def test(match_id):
     #match_id  = sys.argv[1]
     m_match = spider.get_match(match_id)
-    if isStart(m_match.match_time):
-       print '已经开赛'
-       return 0
+    #if isStart(m_match.match_time):
+    #   print '已经开赛'
+    #   return 0
     m_match.display()
     match_url = 'http://odds.500.com/fenxi/shuju-'+ str(match_id) +'.shtml'
     content   = spider.url_get(match_url,"gb2312")
@@ -224,8 +224,11 @@ def test(match_id):
     odd_url   = 'http://odds.500.com/fenxi/ouzhi-'+ str(match_id) +'.shtml'
     content   = spider.url_get(odd_url,"gb2312")
     (wodd,lodd) = netdata.get_now_Odds(content)
-    (home_rv,home_rv_wodd)=getTeamMatDis(home_url,wodd,lodd,1)
-    (away_rv,away_rv_wodd)=getTeamMatDis(away_url,lodd,wodd,0)
+    (home_rv,home_rv_wodd,home_last_3_goals,home_last_3_losts)=BSc.getTeamMatDis(home_url,wodd,lodd,1)
+    (away_rv,away_rv_wodd,away_last_3_goals,away_last_3_losts)=BSc.getTeamMatDis(away_url,lodd,wodd,0)
+    print '====================== ⚽ ======================'
+    print m_match.hometeam + ' 最近三场进球: '+str(home_last_3_goals)+' 最近三场失球:'+str(home_last_3_losts)
+    print m_match.awayteam + ' 最近三场进球: '+str(away_last_3_goals)+' 最近三场失球:'+str(away_last_3_losts)
     print '==============================================='
     SelShow(home_rv,away_rv)
     show(home_rv,home_rv_wodd)
@@ -235,12 +238,15 @@ def test(match_id):
     print '          '
     print '          '
 
+import AppUseWedd as appW
+import AppUseAomen as appA
+
 def app(match_id):
     #match_id  = sys.argv[1]
     m_match = spider.get_match(match_id)
-    if isStart(m_match.match_time):
-       print '已经开赛'
-       return 0
+    #if isStart(m_match.match_time):
+    #   print '已经开赛'
+    #   return 0
     m_match.display()
     match_url = 'http://odds.500.com/fenxi/shuju-'+ str(match_id) +'.shtml'
     content   = spider.url_get(match_url,"gb2312")
@@ -249,20 +255,37 @@ def app(match_id):
     odd_url   = 'http://odds.500.com/fenxi/ouzhi-'+ str(match_id) +'.shtml'
     content   = spider.url_get(odd_url,"gb2312")
     (wodd,lodd) = netdata.get_now_Odds(content)
-    (home_rv,home_rv_wodd)=getTeamMatDis(home_url,wodd,lodd,1)
-    (away_rv,away_rv_wodd)=getTeamMatDis(away_url,lodd,wodd,0)
-    if home_rv.num_matches==0 or away_rv.num_matches==0:
+    #print home_url;print wodd;print lodd;
+    (home_rv,home_rv_wodd,home_last_3_goals,home_last_3_losts,home_this_goals,home_this_loses,real_home_goal)=BSc.getTeamMatDis(home_url,wodd,lodd,1)
+    (away_rv,away_rv_wodd,away_last_3_goals,away_last_3_losts,away_this_goals,away_this_loses,real_away_goal)=BSc.getTeamMatDis(away_url,lodd,wodd,0)
+    if home_rv.num_matches<1 or away_rv.num_matches<1:
        print '          '
        print '          '
        return 0
     print '==============================================='
     SelShow(home_rv,away_rv)
-    show(home_rv,home_rv_wodd)
-    show(away_rv,away_rv_wodd)
-    print  '===============  澳门心水推荐  ================='
+    show(home_rv,home_rv_wodd,home_this_goals,home_this_loses)
+    show(away_rv,away_rv_wodd,away_this_goals,away_this_loses)
+    print '====================== ⚽ ======================'
+    print m_match.host_team + ' 最近三场进球: '+str(home_last_3_goals)+' 最近三场失球:'+str(home_last_3_losts)
+    print m_match.guest_team + ' 最近三场进球: '+str(away_last_3_goals)+' 最近三场失球:'+str(away_last_3_losts)
+    print  '=============== 🐷 澳门心水推荐 🐷 ================='
     print WebSuggest
     showMarket(match_id)       
-    showOddsChangePre(match_id)
+    #showOddsChangePre(match_id)
+    print  '===============  澳门亚盘  ================='
+    appA.AppUseAomen(match_id)
+    print  '===============  澳门初盘  ================='
+    appA.AppUseAomen_s(match_id)
+    print  '===============  韦德大小球  ================='
+    #fw.AppUseWeddOdds(match_id)
+    #os.system('python AppUseWedd.py ' + str(match_id) )
+    appW.AppUseWedd(match_id)
+    print  '===============  韦德初盘  ================='
+    appW.AppUseWedd_s(match_id)
+    #os.system('./AutobetTool.sh ' + str(match_id) )
+    print  '===============  真实比分  ================='
+    print  str(real_home_goal)+' : '+str(real_away_goal)
     print '          '
     print '          '
 
@@ -283,7 +306,13 @@ def isStart(match_time):
     #             if int(m_minute) >= int(now_minute):
     #                return False
     # return True
-    return compareTime(time.groups(),now_time.groups(),0) 
+    now_t    = list(now_time.groups())
+    #now_t[2] = '31'
+    #now_t[3] = '13'
+    #now_t[4] = '50'
+    #print tuple(now_t)
+    return compareTime(time.groups(),tuple(now_t),0) 
+    #return compareTime(time.groups(),now_time.groups(),0) 
 
 def compareTime(m_time,n_time,i):
     if m_time > n_time:
@@ -302,6 +331,7 @@ def test_isStart(match_id):
 
 if __name__ == '__main__':
     app(sys.argv[1])
+    #app("701699")
     #test(sys.argv[1])
     #test(698120)
     #test_isStart(sys.argv[1])

@@ -7,6 +7,7 @@ import random
 import spiderForWedd as sw
 import sys
 
+'''
 def show(Infos):
     num_3  = 0 
     num_1  = 0
@@ -38,6 +39,49 @@ def show(Infos):
     print  ' 主穿:  '+str(num_31/num_t)
     print  ' 客穿:  '+str(num_01/num_t)
     print  history
+'''
+
+def show(Infos):
+    num_3    = 0 
+    num_1    = 0
+    num_0    = 0
+    num_t    = float(len(Infos))
+    num_31   = 0
+    num_01   = 0 
+    history  = []
+    HomeGoal = []
+    AwayGoal = []
+    for info in Infos:
+        HomeGoal.append(info[0][4])
+        AwayGoal.append(info[0][5])
+        if info[0][4]-info[0][5]>0:
+           num_3+=1
+           history.append('Win ')
+        if info[0][4]-info[0][5]==0:
+           num_1+=1
+           history.append('Don ')
+        if info[0][4]-info[0][5]<0:
+           num_0+=1
+           history.append('Los ')
+        if info[0][4]-info[0][5]>1:
+           num_31+=1
+        if info[0][4]-info[0][5]<-1:
+           num_01+=1      
+    print  ' 场数:      '+str(num_t)       
+    print  '~~~~~~~~~~~~~~~~~~~~'
+    print  ' 主胜:  '+str(num_3/num_t)
+    print  ' 平局:  '+str(num_1/num_t)
+    print  ' 客胜:  '+str(num_0/num_t)
+    print  '~~~~~~~~~~~~~~~~~~~~'
+    print  ' 主穿:  '+str(num_31/num_t)
+    print  ' 客穿:  '+str(num_01/num_t)
+    print  '~~~~~~~~~~~~~~~~~~~~'
+    print  ' 主进:  '+str(float(sum(HomeGoal))/len(HomeGoal))
+    print  ' 客进:  '+str(float(sum(AwayGoal))/len(AwayGoal))
+    print  ' 主进:  '+str(min(HomeGoal))+' - '+str(max(HomeGoal))
+    print  ' 客进:  '+str(min(AwayGoal))+' - '+str(max(AwayGoal))
+    print  history
+
 
 def giveJudge(Infos):
     num_25 = 0 
@@ -71,11 +115,31 @@ def AppUseAomen(match_id):
     if pre_info==0:
        return 0
     pre_info = (np.float64(np.array((pre_info[0]+pre_info[2]))),pre_info[1])
-    Datas    = np.concatenate((np.load('Data_WDL/AomenWDL-1.npy'),np.load('Data_WDL/AomenWDL-2.npy'),np.load('Data_WDL/AomenWDL-3.npy'),np.load('Data_WDL/AomenWDL-4.npy'),np.load('Data_WDL/AomenWDL-5.npy'),np.load('Data_WDL/AomenWDL-6.npy'),np.load('Data_WDL/AomenWDL-7.npy'),np.load('Data_WDL/AomenWDL-8.npy'),np.load('Data_WDL/AomenWDL-9.npy'),np.load('Data_WDL/AomenWDL-10.npy'),np.load('Data_WDL/AomenWDL-11.npy') ))
+    Datas    = np.concatenate((np.load('Data_WDL/AomenWDL-1.npy'),np.load('Data_WDL/AomenWDL-2.npy'),np.load('Data_WDL/AomenWDL-3.npy'),np.load('Data_WDL/AomenWDL-4.npy'),np.load('Data_WDL/AomenWDL-5.npy'),np.load('Data_WDL/AomenWDL-6.npy'),np.load('Data_WDL/AomenWDL-7.npy'),np.load('Data_WDL/AomenWDL-8.npy'),np.load('Data_WDL/AomenWDL-9.npy'),np.load('Data_WDL/AomenWDL-10.npy'),np.load('Data_WDL/AomenWDL-11.npy'),np.load('Data_WDL/AomenWDL-12.npy') ))
     Infos    = giveSimilarInfos(pre_info,Datas)
     if len(Infos)==0:
        return 0
     show(Infos)
+
+def AppUseAomen_s(match_id):
+    pre_info = sw.getAppointASOddsAndRes_notstart(match_id,'澳门')
+    if pre_info==0:
+       return 0
+    pre_info = (np.float64(np.array((pre_info[0]+pre_info[2]))),pre_info[1])
+    Datas    = np.concatenate((np.load('Data_WDL/AomenWDL-1.npy'),np.load('Data_WDL/AomenWDL-2.npy'),np.load('Data_WDL/AomenWDL-3.npy'),np.load('Data_WDL/AomenWDL-4.npy'),np.load('Data_WDL/AomenWDL-5.npy'),np.load('Data_WDL/AomenWDL-6.npy'),np.load('Data_WDL/AomenWDL-7.npy'),np.load('Data_WDL/AomenWDL-8.npy'),np.load('Data_WDL/AomenWDL-9.npy'),np.load('Data_WDL/AomenWDL-10.npy'),np.load('Data_WDL/AomenWDL-11.npy'),np.load('Data_WDL/AomenWDL-12.npy'),np.load('Data_WDL/AomenWDL-1_18.npy'),np.load('Data_WDL/AomenWDL-2_18.npy') ))
+    Infos    = giveSimilarInfos_s(pre_info,Datas)
+    if len(Infos)==0:
+       return 0
+    show(Infos)
+
+
+def giveSimilarInfos_s(pre_info,Datas):
+    Infos = []
+    for info in Datas:
+        if pre_info[0][2]==info[0][2] and pre_info[0][3]==info[0][3] and pre_info[1][1]==info[1][1]:
+           Infos.append(info)
+    return Infos
+
 
 def isRight(pre_info,Datas):
     #Datas = np.concatenate((np.load('WeddBS-1.npy'),np.load('WeddBS-2.npy'),np.load('WeddBS-3.npy'),np.load('WeddBS-4.npy')))
@@ -114,4 +178,6 @@ def stat():
 if __name__ == '__main__':
     #stat()
     AppUseAomen(sys.argv[1])
+    print '------------'
+    AppUseAomen_s(sys.argv[1])
 

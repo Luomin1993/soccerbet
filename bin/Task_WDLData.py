@@ -216,7 +216,7 @@ def AppSpiderWeddBSodds_test():
 
 def AppMakeAomenData(month,lastday):
 	Lines = AppSpiderAomenBSodds(month,lastday)
-	np.save('Data_WDL/AomenWDL-'+str(month),Lines)
+	np.save('Data_WDL/AomenWDL-'+str(month)+'_18',Lines)
 
 def AppUseWeddOdds(match_id):
     thisInfo = getOneWeddOdd(match_id)
@@ -228,11 +228,11 @@ def AppUseWeddOdds(match_id):
     	   print str(info[0][4])+':'+str(info[0][5]) +' --- '+ judgeBSRes(info[0][4],info[0][5])
 
 def judgeBSRes(goal1,goal2):
-	if goal1+goal2>2.5 and goal1+goal2>1.5:
-	   return '大2.5 大1.5'
-	if goal1+goal2<2.5 and goal1+goal2>1.5:   
-	   return '      大1.5'
-	return '小'   
+    if goal1+goal2>2.5 and goal1+goal2>1.5:
+       return '大2.5 大1.5'
+    if goal1+goal2<2.5 and goal1+goal2>1.5:   
+       return '      大1.5'
+    return '小'   
 
 if __name__ == '__main__':
     #print getAppointBSOddsAndRes_test()    
@@ -242,8 +242,4 @@ if __name__ == '__main__':
     #AppMakeAomenData(6,30)
     #AppMakeAomenData(7,31)
     #AppMakeAomenData(8,31)
-    AppMakeAomenData(10,31)
-    #AppMakeWeddData_thisMonth(11,9)
-    #AppUseWeddOdds(sys.argv[1])
-    #AppUseAomenOdds(sys.argv[1])
-
+    AppMakeAomenData(2,10)

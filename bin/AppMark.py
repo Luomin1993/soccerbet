@@ -238,6 +238,9 @@ def test(match_id):
     print '          '
     print '          '
 
+import AppUseWedd as appW
+import AppUseAomen as appA
+
 def app(match_id):
     #match_id  = sys.argv[1]
     m_match = spider.get_match(match_id)
@@ -252,6 +255,7 @@ def app(match_id):
     odd_url   = 'http://odds.500.com/fenxi/ouzhi-'+ str(match_id) +'.shtml'
     content   = spider.url_get(odd_url,"gb2312")
     (wodd,lodd) = netdata.get_now_Odds(content)
+    #print home_url;print wodd;print lodd;
     (home_rv,home_rv_wodd,home_last_3_goals,home_last_3_losts,home_this_goals,home_this_loses)=BSc.getTeamMatDis(home_url,wodd,lodd,1)
     (away_rv,away_rv_wodd,away_last_3_goals,away_last_3_losts,away_this_goals,away_this_loses)=BSc.getTeamMatDis(away_url,lodd,wodd,0)
     if home_rv.num_matches<1 or away_rv.num_matches<1:
@@ -270,13 +274,70 @@ def app(match_id):
     showMarket(match_id)       
     #showOddsChangePre(match_id)
     print  '===============  澳门亚盘  ================='
-    fw.AppUseAomenOdds(match_id)
+    appA.AppUseAomen(match_id)
+    print  '===============  澳门初盘  ================='
+    appA.AppUseAomen_s(match_id)
     print  '===============  韦德大小球  ================='
     #fw.AppUseWeddOdds(match_id)
-    os.system('python AppUseWedd.py ' + str(match_id) )
-    os.system('./AutobetTool.sh ' + str(match_id) )
+    #os.system('python AppUseWedd.py ' + str(match_id) )
+    appW.AppUseWedd(match_id)
+    print  '===============  韦德初盘  ================='
+    appW.AppUseWedd_s(match_id)
+    #os.system('./AutobetTool.sh ' + str(match_id) )
     print '          '
     print '          '
+    appSaveToCSV(match_id)
+
+def appSaveMat(match_id):
+    if(os.path.exists(str(match_id)+'.npy')):
+      return 0
+    m_match = spider.get_match(match_id)  
+    if isStart(m_match.match_time):
+      return 0
+    match_url = 'http://odds.500.com/fenxi/ouzhi-'+ str(match_id) +'.shtml'
+    content   = spider.url_get(match_url,"gb2312")
+    (home_url,away_url) = netdata.get_Team_url(content)
+    #start
+    Mat = []
+    Odds_Vec     = netdata.get_now_all_odds(content)
+    home_rv = BSc.getTeamMatDis(home_url,Odds_Vec[0],Odds_Vec[2],1)[0]
+    away_rv = BSc.getTeamMatDis(away_url,Odds_Vec[2],Odds_Vec[0],0)[0]
+    Pre_Vec_Home = home_rv.get_pre_vec()
+    Pre_Vec_Away = away_rv.get_pre_vec()
+    Betfair_Vec  = fm.getBetfairsth(match_id)[0]
+    Company_Vec  = fm.getBetfairsth(match_id)[1]
+    Home_EG_Vec  = [home_rv.get_average_goal(),0,away_rv.get_average_lose()]
+    Away_EG_Vec  = [away_rv.get_average_goal(),0,home_rv.get_average_lose()]
+    (home_this_goals,home_this_loses) = BSc.getTeamMatDis(home_url,Odds_Vec[0],Odds_Vec[2],1)[4:6]
+    (away_this_goals,away_this_loses) = BSc.getTeamMatDis(away_url,Odds_Vec[2],Odds_Vec[0],0)[4:6]
+    Home_VG_Vec  = [np.var(home_this_goals),0,np.var(away_this_loses)]
+    Away_VG_Vec  = [np.var(away_this_goals),0,np.var(home_this_loses)]
+    return [list(Pre_Vec_Home),list(Pre_Vec_Away),list(Odds_Vec),Betfair_Vec,Company_Vec,Home_EG_Vec,Away_EG_Vec,Home_VG_Vec,Away_VG_Vec]
+
+def testSaveMat():
+    print appSaveMat(723067) 
+
+def appSaveToCSV(match_id):
+    mat = appSaveMat(match_id)
+    if in_the_file(match_id,'./Mat/Mat.csv'):
+       return 0
+    import csv
+    csvfile = file('./Mat/Mat.csv','a+')
+    writer  = csv.writer(csvfile)
+    #id_writer = csv.writer(csvfile,delimiter='') 
+    writer.writerow(' ')
+    writer.writerow([match_id])
+    for row in mat:
+        writer.writerow(row)
+    csvfile.close()    
+
+
+def in_the_file(match_id,path):
+    with open(path,'r') as foo:
+         for line in foo.readlines():
+             if match_id in line:
+                return True
+    return False    
 
 def isStart(match_time):
     #time = re.match(r'(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})', match_time)
@@ -297,12 +358,11 @@ def isStart(match_time):
     # return True
     now_t    = list(now_time.groups())
     #now_t[2] = '31'
-    #now_t[3] = '21'
+    #now_t[3] = '13'
     #now_t[4] = '50'
     #print tuple(now_t)
     return compareTime(time.groups(),tuple(now_t),0) 
-
-    return compareTime(time.groups(),now_time.groups(),0) 
+    #return compareTime(time.groups(),now_time.groups(),0) 
 
 def compareTime(m_time,n_time,i):
     if m_time > n_time:
@@ -321,6 +381,7 @@ def test_isStart(match_id):
 
 if __name__ == '__main__':
     app(sys.argv[1])
+    #testSaveMat()
     #app("701699")
     #test(sys.argv[1])
     #test(698120)

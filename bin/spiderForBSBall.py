@@ -42,9 +42,20 @@ def get_Team_url(content):
 def getAllMatches():
     #href="http://odds.500.com/fenxi/shuju-657875.shtml">析</a>
     content = spider.url_get("http://live.500.com/zqdc.php","gb2312")
+    #content = spider.url_get("http://live.500.com/2h1.php","gb2312")
     url_r = re.compile(r'href="//odds.500.com/fenxi/shuju-(.*?).shtml"')
     Match_URLs = url_r.findall(content)
     return Match_URLs
+
+#http://live.500.com/zqdc.php
+def getEuroMatches():
+    #href="http://odds.500.com/fenxi/shuju-657875.shtml">析</a>
+    #content = spider.url_get("http://live.500.com/zqdc.php","gb2312")
+    content = spider.url_get("http://live.500.com/2h1.php","gb2312")
+    url_r = re.compile(r'href="//odds.500.com/fenxi/shuju-(.*?).shtml"')
+    Match_URLs = url_r.findall(content)
+    return Match_URLs
+
 
 def getAllMatches_test():
     print getAllMatches()
@@ -86,11 +97,25 @@ def get_Suggest_test():
 def get_now_Odds(content):
     #<td row="1" width="33.3%" id="avwinc2">1.59</td>
     #<td row="1"   id="avlostc2">5.13</td>
-    w_r = re.compile(r'<td row="1" width="33.3%" id="avwinc2">(.*)</td>')
-    l_r = re.compile(r'<td row="1"   id="avlostc2">(.*)</td>')
+    # w_r = re.compile(r'<td row="1" width="33.3%" id="avwinc2">(.*)</td>')
+    #l_r = re.compile(r'<td row="1"   id="avlostc2">(.*)</td>')
+    w_r = re.compile(r'<td row="1" width="33.3%" id="avwinj2">(.*)</td>')
+    l_r = re.compile(r'<td row="1"   id="avlostj2">(.*)</td>')
     wodd = float(w_r.findall(content)[0])
     lodd = float(l_r.findall(content)[0])
     return(wodd,lodd)
+
+def get_now_all_odds(content):
+    #<td row="1" width="33.3%" id="avwinj2">2.31</td>
+    #<td row="1" width="33.3%" id="avdrawj2">3.28</td>
+    #<td row="1"   id="avlostj2">2.87</td>
+    w_r = re.compile(r'<td row="1" width="33.3%" id="avwinj2">(.*)</td>')
+    d_r = re.compile(r'<td row="1" width="33.3%" id="avdrawj2">(.*)</td>')
+    l_r = re.compile(r'<td row="1"   id="avlostj2">(.*)</td>')
+    wodd = float(w_r.findall(content)[0])
+    dodd = float(d_r.findall(content)[0])
+    lodd = float(l_r.findall(content)[0])
+    return(wodd,dodd,lodd)
 
 def get_now_Odds_test():
     content = spider.url_get("http://odds.500.com/fenxi/ouzhi-632108.shtml","gb2312")
