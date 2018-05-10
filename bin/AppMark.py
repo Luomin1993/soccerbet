@@ -284,16 +284,17 @@ def app(match_id):
     print  '===============  韦德初盘  ================='
     appW.AppUseWedd_s(match_id)
     #os.system('./AutobetTool.sh ' + str(match_id) )
-    print '          '
-    print '          '
     appSaveToCSV(match_id)
+    print '          '
+    print '          '
+    #appSaveToCSV(match_id)
 
 def appSaveMat(match_id):
     if(os.path.exists(str(match_id)+'.npy')):
       return 0
     m_match = spider.get_match(match_id)  
-    if isStart(m_match.match_time):
-      return 0
+    #if isStart(m_match.match_time):
+    #  return 0
     match_url = 'http://odds.500.com/fenxi/ouzhi-'+ str(match_id) +'.shtml'
     content   = spider.url_get(match_url,"gb2312")
     (home_url,away_url) = netdata.get_Team_url(content)
@@ -357,16 +358,16 @@ def isStart(match_time):
     #                return False
     # return True
     now_t    = list(now_time.groups())
-    #now_t[2] = '31'
-    #now_t[3] = '13'
-    #now_t[4] = '50'
+    #now_t[2] = '7'   #change day!
+    #now_t[3] = '0' #change hour!
+    #now_t[4] = '50' #change minute!
     #print tuple(now_t)
     return compareTime(time.groups(),tuple(now_t),0) 
     #return compareTime(time.groups(),now_time.groups(),0) 
 
 def compareTime(m_time,n_time,i):
     if m_time > n_time:
-       return False
+      return False
     if m_time < n_time:
        return True
     if i == len(m_time)-1:
